@@ -22,7 +22,7 @@ commands:
         container: events_service
         run: |
             until [ -e /work/tmp/POSTGRES_SETUP_DONE ]; do sleep 1; done  # wait postgres setup
-            echo "Migrating..."
+            echo "Creating all tables..."
             python3 manage.py init
 
       pg: !Command
@@ -31,10 +31,10 @@ commands:
             if [ ! -e /work/tmp/db ]
             then
                 mkdir -p /work/tmp/db
-                chown postgres:postgres /work/tmp/db
+                chown postgres:postgres -R /work/tmp/db
                 sudo -u postgres /usr/lib/postgresql/9.3/bin/initdb /work/tmp/db
-                sed -i.bak "s/^\s*#unix_socket_directories .*$/unix_socket_directories = '\/work\/tmp\/run'/g" /work/tmp/db/postgresql.conf
-                echo "host all all all trust" >> /work/tmp/db/pg_hba.conf
+                sudo -u postgres sed -i.bak "s/^\s*#unix_socket_directories .*$/unix_socket_directories = '\/work\/tmp\/run'/g" /work/tmp/db/postgresql.conf
+                sudo -u postgres echo "host all all all trust" >> /work/tmp/db/pg_hba.conf
             fi
             [ ! -e /work/tmp/run ] && mkdir -p /work/tmp/run && chown postgres:postgres /work/tmp/run
             sudo -u postgres /usr/lib/postgresql/9.3/bin/postgres -D /work/tmp/db &
@@ -46,6 +46,12 @@ commands:
             END_OF_SUDO
             echo 'ok' > /work/tmp/POSTGRES_SETUP_DONE
             wait
+
+  clean: !Command
+    description: Removes database
+    container: postgres
+    run: |
+        rm -rf /work/tmp/db /work/tmp/run /work/tmp/POSTGRES_SETUP_DONE
 
   run: !Supervise
     description: Run app
