@@ -1,23 +1,12 @@
-import asyncio
-from aiohttp import web
-from aiorest.resource import Resource
+import trafaret as t
+from aiorest.resource import ModelResource
+from events_service.models import Test
 
 
-class Events(Resource):
+class Events(ModelResource):
+    model = Test
+    trafaret_in = t.Dict(text=t.String(256))
+    trafaret_out = t.Dict(text=t.String(), id=t.Int())
+
     def get_path(self):
-        return r'/events'
-
-    @asyncio.coroutine
-    def get(self, request, ident):
-        text = "Hello world"
-        return web.Response(body=text.encode('utf-8'))
-
-    @asyncio.coroutine
-    def create(self, request):
-        text = "Hello world"
-        return web.Response(body=text.encode('utf-8'))
-
-    @asyncio.coroutine
-    def list(self, request):
-        text = "Hello world"
-        return web.Response(body=text.encode('utf-8'))
+        return r'/test'

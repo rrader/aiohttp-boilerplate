@@ -19,5 +19,6 @@ ptyprocess==0.5
 python-editor==0.4
 simplegeneric==0.8.1
 SQLAlchemy==1.0.8
+trafaret==0.5.4
 traitlets==4.0.0
 wheel==0.24.0

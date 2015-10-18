@@ -15,3 +15,10 @@ class Event(Base):
     agenda = Column(Text)
     social = Column(Text)
     url = Column(String(500))
+
+
+class Test(Base):
+    __tablename__ = 'test'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String(256))
