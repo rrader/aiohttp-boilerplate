@@ -3,7 +3,7 @@ import json
 import http
 from abc import ABCMeta, abstractmethod
 from aiohttp.web_exceptions import HTTPBadRequest, HTTPNotFound
-from aiorest.response import JSONResponse
+from rest_utils.response import JSONResponse
 
 
 class BaseResource:
