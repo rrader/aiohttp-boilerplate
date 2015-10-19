@@ -71,12 +71,12 @@ class ModelBaseResource(BaseResource):
     def register(self):
         if self.model is None:
             raise Exception('model should be specified for ModelResource')
-        if 'sa_engine' not in self.app:
-            raise Exception('sa_engine should be specified in Application')
+        if 'db_engine' not in self.app:
+            raise Exception('db_engine should be specified in Application')
         super().register()
 
     def get_engine(self):
-        return self.app['sa_engine']
+        return self.app['db_engine']
 
     def validate(self, trafaret, instance):
         if trafaret is not None:
@@ -113,7 +113,7 @@ class RetrieveModelMixin(RetrieveMixin):
         with (yield from self.get_engine()) as conn:
             table = self.model.__table__
             result = yield from conn.execute(
-                table.select().where(table.c.id == ident)
+                table.select().where(table.c.id == ident)  # via metadata??
             )
             instance = yield from result.fetchone()
             instance = dict(instance)

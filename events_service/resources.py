@@ -1,3 +1,4 @@
+import asyncio
 import trafaret as t
 from aiorest.resource import ModelResource
 from events_service.models import Test
@@ -10,3 +11,8 @@ class TestResource(ModelResource):
 
     def get_path(self):
         return r'/test'
+
+
+@asyncio.coroutine
+def setup(app):
+    TestResource(app).register()

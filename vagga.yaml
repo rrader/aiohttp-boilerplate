@@ -23,7 +23,8 @@ commands:
         run: |
             until [ -e /work/tmp/POSTGRES_SETUP_DONE ]; do sleep 1; done  # wait postgres setup
             echo "Creating all tables..."
-            python3 manage.py init
+            # python3 manage.py migrate
+            alembic upgrade head
 
       pg: !Command
         container: postgres

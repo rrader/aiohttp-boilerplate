@@ -1,32 +1,13 @@
 import asyncio
 from aiohttp.web import Application
-from aiopg.sa import create_engine
-from events_service.resources import TestResource
-from events_service.settings import DATABASE_HOST, DATABASE_PASSWORD,\
-    DATABASE_NAME, DATABASE_USERNAME
-
-
-@asyncio.coroutine
-def setup(app):
-    engine = yield from create_engine(user=DATABASE_USERNAME,
-                                      database=DATABASE_NAME,
-                                      host=DATABASE_HOST,
-                                      password=DATABASE_PASSWORD)
-    app['sa_engine'] = engine
+from events_service import models, resources
 
 
 def build_application():
     loop = asyncio.get_event_loop()
     app = Application(loop=loop)
-    loop.run_until_complete(setup(app))
-    TestResource(app).register()
-
-    # app.router.add_route('GET', '/', intro)
-    # app.router.add_route('GET', '/simple', simple)
-    # app.router.add_route('GET', '/change_body', change_body)
-    # app.router.add_route('GET', '/hello/{name}', hello)
-    # app.router.add_route('GET', '/hello', hello)
-
+    loop.run_until_complete(models.setup(app))
+    loop.run_until_complete(resources.setup(app))
     return app
 
 
