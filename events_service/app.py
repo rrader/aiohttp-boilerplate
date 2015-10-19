@@ -1,7 +1,7 @@
 import asyncio
 from aiohttp.web import Application
 from aiopg.sa import create_engine
-from events_service.resources import Events
+from events_service.resources import TestResource
 from events_service.settings import DATABASE_HOST, DATABASE_PASSWORD,\
     DATABASE_NAME, DATABASE_USERNAME
 
@@ -19,7 +19,7 @@ def build_application():
     loop = asyncio.get_event_loop()
     app = Application(loop=loop)
     loop.run_until_complete(setup(app))
-    Events(app).register()
+    TestResource(app).register()
 
     # app.router.add_route('GET', '/', intro)
     # app.router.add_route('GET', '/simple', simple)
