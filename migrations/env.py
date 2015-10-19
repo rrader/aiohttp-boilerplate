@@ -8,8 +8,8 @@ import sys
 dirname = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(dirname, '..')))
 
-from events_service import settings
-from events_service.app import build_application
+from test_service import settings
+from test_service.app import build_application
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

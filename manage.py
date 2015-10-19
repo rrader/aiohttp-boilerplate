@@ -1,9 +1,9 @@
 import logging
 from aio_manager import Manager
 from aio_manager.commands.ext import sqlalchemy
-from events_service import settings
-from events_service.app import build_application
-from events_service.models import Base
+from test_service import settings
+from test_service.app import build_application
+from test_service.models import Base
 
 logging.basicConfig(level=logging.WARNING)
 

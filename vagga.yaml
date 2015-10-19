@@ -3,7 +3,7 @@ containers:
     setup:
     - !Ubuntu trusty
     - !UbuntuUniverse
-    - !Install [libpq-dev, ca-certificates, git]
+    - !Install [libpq-dev, ca-certificates, git, python-pkg-resources]
     - !Py3Requirements requirements.txt
     environ: {DATABASE_URL: postgres://vaggauser:password@127.0.0.1:5432/vaggadb}
   postgres:
@@ -14,45 +14,43 @@ containers:
         echo "127.0.0.1 localhost" >> /etc/hosts
 
 commands:
+  initdb: !Command
+    description: Creates database at tmp/db
+    container: postgres
+    run: |
+        if [ ! -e /work/tmp/db ]
+        then
+            mkdir -p /work/tmp/db
+            chown postgres:postgres -R /work/tmp/db
+            sudo -u postgres /usr/lib/postgresql/9.3/bin/initdb /work/tmp/db
+            sudo -u postgres sed -i.bak "s/^\s*#unix_socket_directories .*$/unix_socket_directories = '\/work\/tmp\/run'/g" /work/tmp/db/postgresql.conf
+            sudo -u postgres echo "host all all all trust" >> /work/tmp/db/pg_hba.conf
+        fi
+        [ ! -e /work/tmp/run ] && mkdir -p /work/tmp/run && chown postgres:postgres /work/tmp/run
+        sudo -u postgres /usr/lib/postgresql/9.3/bin/postgres -D /work/tmp/db &
+        sudo -u postgres -s << END_OF_SUDO
+            until nc -z -w 4 127.0.0.1 5432; do sleep 3; done  # wait until postgres is up
+            createuser -h /work/tmp/run vaggauser
+            psql -h /work/tmp/run -c 'alter user vaggauser with createdb' postgres
+            PGPASSWORD=password createdb -h /work/tmp/run -U vaggauser vaggadb
+        END_OF_SUDO
+        echo 'ok' > /work/tmp/POSTGRES_SETUP_DONE
+        sleep 2
 
-  setup: !Supervise
-    description: Init database. Run this command before 'run'.
-    children:
-      events_service: !Command
-        container: events_service
-        run: |
-            until [ -e /work/tmp/POSTGRES_SETUP_DONE ]; do sleep 1; done  # wait postgres setup
-            echo "Creating all tables..."
-            # python3 manage.py migrate
-            alembic upgrade head
-
-      pg: !Command
-        container: postgres
-        run: |
-            if [ ! -e /work/tmp/db ]
-            then
-                mkdir -p /work/tmp/db
-                chown postgres:postgres -R /work/tmp/db
-                sudo -u postgres /usr/lib/postgresql/9.3/bin/initdb /work/tmp/db
-                sudo -u postgres sed -i.bak "s/^\s*#unix_socket_directories .*$/unix_socket_directories = '\/work\/tmp\/run'/g" /work/tmp/db/postgresql.conf
-                sudo -u postgres echo "host all all all trust" >> /work/tmp/db/pg_hba.conf
-            fi
-            [ ! -e /work/tmp/run ] && mkdir -p /work/tmp/run && chown postgres:postgres /work/tmp/run
-            sudo -u postgres /usr/lib/postgresql/9.3/bin/postgres -D /work/tmp/db &
-            sudo -u postgres -s << END_OF_SUDO
-                until nc -z -w 4 127.0.0.1 5432; do sleep 3; done  # wait until postgres is up
-                createuser -h /work/tmp/run vaggauser
-                psql -h /work/tmp/run -c 'alter user vaggauser with createdb' postgres
-                PGPASSWORD=password createdb -h /work/tmp/run -U vaggauser vaggadb
-            END_OF_SUDO
-            echo 'ok' > /work/tmp/POSTGRES_SETUP_DONE
-            wait
-
-  clean: !Command
+  cleandb: !Command
     description: Removes database
     container: postgres
     run: |
         rm -rf /work/tmp/db /work/tmp/run /work/tmp/POSTGRES_SETUP_DONE
+
+  migrate: !Command
+    description: Executes alembic migrations
+    container: events_service
+    run: |
+        until [ -e /work/tmp/POSTGRES_SETUP_DONE ]; do sleep 1; done  # wait postgres setup
+        echo "Creating all tables..."
+        # python3 manage.py migrate
+        alembic upgrade head
 
   run: !Supervise
     description: Run app
@@ -68,7 +66,7 @@ commands:
         run: |
             sudo -u postgres /usr/lib/postgresql/9.3/bin/postgres -D /work/tmp/db
 
-  pg: !Command
+  db: !Command
     description: Run database only
     container: postgres
     run: |

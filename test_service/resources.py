@@ -1,7 +1,7 @@
 import asyncio
 import trafaret as t
 from aiorest.resource import ModelResource
-from events_service.models import Test
+from test_service.models import Test
 
 
 class TestResource(ModelResource):

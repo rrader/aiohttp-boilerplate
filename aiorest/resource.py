@@ -2,9 +2,8 @@ import asyncio
 import json
 import http
 from abc import ABCMeta, abstractmethod
-from aiohttp.web_exceptions import HTTPBadRequest, HTTPCreated
+from aiohttp.web_exceptions import HTTPBadRequest
 from aiorest.response import JSONResponse
-import trafaret
 
 
 class BaseResource:
