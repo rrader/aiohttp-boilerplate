@@ -2,7 +2,7 @@ import asyncio
 import json
 import http
 from abc import ABCMeta, abstractmethod
-from aiohttp.web_exceptions import HTTPBadRequest
+from aiohttp.web_exceptions import HTTPBadRequest, HTTPNotFound
 from aiorest.response import JSONResponse
 
 
@@ -115,8 +115,10 @@ class RetrieveModelMixin(RetrieveMixin):
                 table.select().where(table.c.id == ident)  # via metadata??
             )
             instance = yield from result.fetchone()
-            instance = dict(instance)
 
+        if not instance:
+            raise HTTPNotFound(text=json.dumps({'id': ident}))
+        instance = dict(instance)
         instance = self.validate(self.trafaret_out, dict(instance))
         data = json.dumps(instance).encode()
         return JSONResponse(
